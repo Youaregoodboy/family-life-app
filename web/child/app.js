@@ -628,7 +628,7 @@ document.getElementById('media-modal').addEventListener('click', (e) => {
 });
 
 const GITHUB_REPO = 'Youaregoodboy/family-life-app';
-const CURRENT_VERSION = '1.0.0';
+const CURRENT_VERSION = '1.1.0';
 let latestReleaseData = null;
 
 async function checkForUpdates() {

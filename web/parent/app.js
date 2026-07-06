@@ -625,24 +625,21 @@ async function uploadMedia() {
   
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 60000); // 60秒超时
+    const timeoutId = setTimeout(() => controller.abort(), 60000);
     
-    const response = await fetch(`${API_BASE}/media/upload`, {
+    const result = await apiCall('/media/upload', {
       method: 'POST',
-      credentials: 'include',
       body: formData,
       signal: controller.signal
     });
     clearTimeout(timeoutId);
     
-    const result = await response.json();
-    
-    if (response.ok) {
+    if (result.ok) {
       showToast('上传成功！');
       loadHomeData();
       showSection('home');
     } else {
-      showToast(result.message || '上传失败');
+      showToast(result.data?.message || result.error || '上传失败');
       if (btnText) btnText.textContent = '分享到家庭相册';
     }
   } catch (e) {
@@ -656,7 +653,7 @@ async function uploadMedia() {
 }
 
 const GITHUB_REPO = 'Youaregoodboy/family-life-app';
-const CURRENT_VERSION = '1.0.0';
+const CURRENT_VERSION = '1.1.0';
 let latestReleaseData = null;
 
 async function checkForUpdates() {
