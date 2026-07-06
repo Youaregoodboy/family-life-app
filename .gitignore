@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+*.egg
+
+# Flask
+instance/
+.webassets-cache
+
+# Uploads (用户数据)
+backend/uploads/
+backend/data.json
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Node
+node_modules/
+
+# TWA build artifacts
+twa-parent/
+twa-child/
+*.keystore
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Test
+.pytest_cache/
+
+# Temp
+*.tmp
+*.temp

@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#ec4899">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="亲子时光">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="style.css">
+  <title>亲子时光 - 子女端</title>
+</head>
+<body>
+  <div id="app">
+    <div id="login-page" class="page active">
+      <div class="auth-container child-theme">
+        <div class="auth-header">
+          <div class="logo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+              <path d="M2 17l10 5 10-5"></path>
+              <path d="M2 12l10 5 10-5"></path>
+            </svg>
+          </div>
+          <h1>亲子时光</h1>
+          <p>分享快乐·记录成长</p>
+        </div>
+        
+        <div class="auth-tabs">
+          <button class="tab-btn active" data-tab="login">登录</button>
+          <button class="tab-btn" data-tab="register">注册</button>
+        </div>
+        
+        <form id="login-form" class="auth-form active">
+          <div class="form-group">
+            <label>邮箱</label>
+            <input type="email" id="login-email" placeholder="请输入邮箱" required>
+          </div>
+          <div class="form-group">
+            <label>密码</label>
+            <input type="password" id="login-password" placeholder="请输入密码" required>
+          </div>
+          <button type="submit" class="btn-primary child-btn">登录</button>
+          <p class="auth-tip">子女端 | 与家人分享美好时光</p>
+        </form>
+        
+        <div id="register-form" class="auth-form">
+          <div class="form-group">
+            <label>姓名</label>
+            <input type="text" id="reg-name" placeholder="请输入姓名" required>
+          </div>
+          <div class="form-group">
+            <label>邮箱</label>
+            <input type="email" id="reg-email" placeholder="请输入邮箱" required>
+          </div>
+          <div class="form-group">
+            <label>密码</label>
+            <input type="password" id="reg-password" placeholder="请输入密码（至少6位）" required minlength="6">
+          </div>
+          <button type="button" class="btn-primary child-btn" onclick="handleRegister()">注册并加入家庭</button>
+          <p class="auth-tip">注册后需要邀请码加入家庭</p>
+        </div>
+      </div>
+    </div>
+    
+    <div id="join-family-page" class="page">
+      <div class="auth-container child-theme">
+        <div class="auth-header">
+          <div class="logo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+          </div>
+          <h1>加入家庭</h1>
+          <p>输入爸爸妈妈给你的邀请码</p>
+        </div>
+        
+        <div class="auth-form active">
+          <div class="form-group">
+            <label>邀请码</label>
+            <input type="text" id="invite-code-input" placeholder="请输入6位邀请码" maxlength="6" style="text-transform:uppercase;letter-spacing:4px;text-align:center;font-size:20px;">
+          </div>
+          <button type="button" class="btn-primary child-btn" onclick="joinFamily()">加入家庭</button>
+          <button type="button" class="btn-secondary" onclick="logout()">返回登录</button>
+        </div>
+      </div>
+    </div>
+    
+    <div id="main-app" class="page">
+      <header class="app-header child-header">
+        <div class="header-left">
+          <button id="menu-btn" class="icon-btn" onclick="showSection('profile')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+          </button>
+        </div>
+        <div class="header-title">
+          <span id="page-title">首页</span>
+        </div>
+        <div class="header-right">
+          <button class="icon-btn" onclick="showSection('family')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+          </button>
+        </div>
+      </header>
+      
+      <main class="app-content">
+        <section id="home-section" class="section active">
+          <div class="welcome-card child-welcome">
+            <div class="welcome-text">
+              <h2 id="welcome-name">你好呀~</h2>
+              <p id="welcome-date">今天有什么好玩的？</p>
+            </div>
+            <div class="welcome-avatar child-avatar">
+              <span id="user-avatar">👦</span>
+            </div>
+          </div>
+          
+          <div class="upload-banner" onclick="showUploadPage()">
+            <div class="upload-banner-content">
+              <div class="upload-icon">📷</div>
+              <div>
+                <h3>分享精彩时刻</h3>
+                <p>拍照或上传照片给爸爸妈妈看</p>
+              </div>
+            </div>
+            <div class="upload-arrow">›</div>
+          </div>
+          
+          <div class="stats-grid child-stats">
+            <div class="stat-card">
+              <div class="stat-icon photo-icon">📷</div>
+              <div class="stat-info">
+                <span class="stat-number" id="my-photos">0</span>
+                <span class="stat-label">我的照片</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon video-icon">🎬</div>
+              <div class="stat-info">
+                <span class="stat-number" id="my-videos">0</span>
+                <span class="stat-label">我的视频</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="section-title-row">
+            <h3>我的分享</h3>
+            <button class="link-btn" onclick="showSection('gallery')">查看全部</button>
+          </div>
+          
+          <div id="recent-photos" class="media-grid">
+            <div class="empty-state">
+              <p>还没有分享，快去拍照吧~</p>
+            </div>
+          </div>
+          
+          <div class="section-title-row">
+            <h3>家人动态</h3>
+            <button class="link-btn" onclick="showSection('family-feed')">查看全部</button>
+          </div>
+          
+          <div id="family-feed-preview" class="media-grid">
+            <div class="empty-state">
+              <p>暂无家人动态</p>
+            </div>
+          </div>
+        </section>
+        
+        <section id="upload-section" class="section">
+          <div class="upload-header">
+            <h2>分享照片/视频</h2>
+            <p>记录美好的一天</p>
+          </div>
+          
+          <div class="upload-area" id="upload-area" onclick="document.getElementById('file-input').click()">
+            <input type="file" id="file-input" accept="image/*,video/*" style="display:none;" onchange="handleFileSelect(event)">
+            <div id="upload-placeholder">
+              <div class="upload-placeholder-icon">📸</div>
+              <h3>点击选择照片或视频</h3>
+              <p>支持拍照和从相册选择</p>
+            </div>
+            <div id="upload-preview" style="display:none;">
+              <img id="preview-image" src="" alt="" style="max-width:100%;max-height:300px;border-radius:12px;">
+              <video id="preview-video" src="" style="max-width:100%;max-height:300px;border-radius:12px;display:none;" controls></video>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>描述一下吧</label>
+            <textarea id="upload-desc" placeholder="今天发生了什么有趣的事？" rows="3"></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label>添加标签</label>
+            <div class="tag-suggestions">
+              <button type="button" class="tag-btn" onclick="toggleTag(this)">开心</button>
+              <button type="button" class="tag-btn" onclick="toggleTag(this)">学习</button>
+              <button type="button" class="tag-btn" onclick="toggleTag(this)">运动</button>
+              <button type="button" class="tag-btn" onclick="toggleTag(this)">美食</button>
+              <button type="button" class="tag-btn" onclick="toggleTag(this)">旅行</button>
+              <button type="button" class="tag-btn" onclick="toggleTag(this)">和家人</button>
+            </div>
+          </div>
+          
+          <button class="btn-primary child-btn full-btn" onclick="uploadMedia()">
+            <span id="upload-btn-text">分享给家人</span>
+          </button>
+        </section>
+        
+        <section id="gallery-section" class="section">
+          <div class="gallery-header">
+            <h2>我的相册</h2>
+            <div class="filter-tabs">
+              <button class="filter-tab active" data-filter="all">全部</button>
+              <button class="filter-tab" data-filter="photo">照片</button>
+              <button class="filter-tab" data-filter="video">视频</button>
+            </div>
+          </div>
+          <div id="gallery-grid" class="media-grid gallery">
+            <div class="empty-state">
+              <p>还没有照片，快去分享吧~</p>
+            </div>
+          </div>
+        </section>
+        
+        <section id="family-feed-section" class="section">
+          <div class="feed-header">
+            <h2>家人动态</h2>
+          </div>
+          <div id="family-feed-list" class="timeline-list">
+            <div class="empty-state">
+              <p>暂无家人动态</p>
+            </div>
+          </div>
+        </section>
+        
+        <section id="family-section" class="section">
+          <div class="family-header">
+            <h2>我的家人</h2>
+          </div>
+          
+          <div class="family-card child-family-card">
+            <div class="family-card-icon">🏠</div>
+            <h3 id="family-name">我的家庭</h3>
+            <p id="family-count">0 位成员</p>
+          </div>
+          
+          <div class="family-section">
+            <h3>爸爸妈妈</h3>
+            <div id="parents-list" class="member-list">
+            </div>
+          </div>
+          
+          <div class="family-section">
+            <h3>其他小朋友</h3>
+            <div id="children-list" class="member-list">
+            </div>
+          </div>
+        </section>
+        
+        <section id="profile-section" class="section">
+          <div class="profile-header child-profile">
+            <div class="profile-avatar">
+              <span id="profile-avatar-icon">👦</span>
+            </div>
+            <h2 id="profile-name">小朋友</h2>
+            <p id="profile-email">email@example.com</p>
+          </div>
+          
+          <div class="menu-list">
+            <div class="menu-item" onclick="showSection('family')">
+              <span class="menu-icon">👨‍👩‍👧</span>
+              <span>我的家庭</span>
+              <span class="menu-arrow">›</span>
+            </div>
+            <div class="menu-item" onclick="showJoinFamily()">
+              <span class="menu-icon">🔗</span>
+              <span>更换家庭</span>
+              <span class="menu-arrow">›</span>
+            </div>
+            <div class="menu-item" onclick="logout()">
+              <span class="menu-icon">🚪</span>
+              <span style="color: #ef4444;">退出登录</span>
+              <span class="menu-arrow">›</span>
+            </div>
+          </div>
+          
+          <div class="version-info">
+            <p>亲子时光 v1.0.0</p>
+          </div>
+        </section>
+      </main>
+      
+      <nav class="bottom-nav child-nav">
+        <button class="nav-btn active" data-section="home">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+          </svg>
+          <span>首页</span>
+        </button>
+        <button class="nav-btn" data-section="upload">
+          <div class="upload-nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+          </div>
+          <span>分享</span>
+        </button>
+        <button class="nav-btn" data-section="gallery">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+            <polyline points="21 15 16 10 5 21"></polyline>
+          </svg>
+          <span>相册</span>
+        </button>
+        <button class="nav-btn" data-section="profile">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          <span>我的</span>
+        </button>
+      </nav>
+    </div>
+    
+    <div id="media-modal" class="modal">
+      <div class="modal-content media-modal">
+        <div class="modal-header">
+          <h3 id="modal-title">详情</h3>
+          <button class="close-btn" onclick="closeModal()">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="media-preview">
+            <img id="modal-image" src="" alt="">
+          </div>
+          <div class="media-info">
+            <div class="media-meta">
+              <span class="media-user" id="modal-user">--</span>
+              <span class="media-time" id="modal-time">--</span>
+            </div>
+            <p class="media-desc" id="modal-desc"></p>
+            <div class="media-tags" id="modal-tags"></div>
+            <div class="analysis-section">
+              <h4>智能分析</h4>
+              <div class="analysis-item">
+                <span class="analysis-label">场景</span>
+                <span class="analysis-value" id="analysis-scene">-</span>
+              </div>
+              <div class="analysis-item">
+                <span class="analysis-label">情绪</span>
+                <span class="analysis-value" id="analysis-emotion">-</span>
+              </div>
+              <div class="analysis-item">
+                <span class="analysis-label">识别物体</span>
+                <span class="analysis-value" id="analysis-objects">-</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div id="toast" class="toast"></div>
+  </div>
+  
+  <script src="app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js');
+      });
+    }
+  </script>
+</body>
+</html>

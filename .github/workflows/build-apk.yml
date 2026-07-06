@@ -1,0 +1,96 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Install Bubblewrap
+        run: npm install -g @anthropic/bubblewrap
+
+      - name: Create TWA Project for Parent App
+        run: |
+          mkdir -p twa-parent
+          cd twa-parent
+          bubblewrap init --manifest="../web/parent/manifest.json" --directory="." || true
+          # 手动创建配置
+          cat > twa-manifest.json << EOF
+          {
+            "name": "亲子时光-父母端",
+            "launcherName": "亲子时光",
+            "packageId": "com.familylife.parent",
+            "webManifestUrl": "https://your-domain.com/parent/manifest.json",
+            "startUrl": "/parent/",
+            "display": "standalone",
+            "themeColor": "#6366f1",
+            "navigationColor": "#6366f1",
+            "navigationColorDark": "#6366f1",
+            "navigationDividerColor": "#6366f1",
+            "navigationDividerColorDark": "#6366f1",
+            "backgroundColor": "#ffffff",
+            "enableNotifications": false,
+            "shortcuts": [],
+            "signingKey": {
+              "path": "android.keystore",
+              "alias": "familylife"
+            }
+          }
+          EOF
+
+      - name: Build Parent APK
+        run: |
+          cd twa-parent
+          bubblewrap build || echo "Build requires hosting URL"
+
+      - name: Create TWA Project for Child App
+        run: |
+          mkdir -p twa-child
+          cd twa-child
+          cat > twa-manifest.json << EOF
+          {
+            "name": "亲子时光-子女端",
+            "launcherName": "亲子时光",
+            "packageId": "com.familylife.child",
+            "webManifestUrl": "https://your-domain.com/child/manifest.json",
+            "startUrl": "/child/",
+            "display": "standalone",
+            "themeColor": "#f472b6",
+            "navigationColor": "#f472b6",
+            "navigationColorDark": "#f472b6",
+            "navigationDividerColor": "#f472b6",
+            "navigationDividerColorDark": "#f472b6",
+            "backgroundColor": "#ffffff",
+            "enableNotifications": false,
+            "shortcuts": [],
+            "signingKey": {
+              "path": "android.keystore",
+              "alias": "familylife"
+            }
+          }
+          EOF
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: apk-files
+          path: |
+            twa-parent/*.apk
+            twa-child/*.apk
+          if-no-files-found: ignore
