@@ -16,69 +16,59 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install Capacitor CLI
-        run: npm install -g @capacitor/cli
-
-      - name: Build Parent APK with Capacitor
-        run: |
-          mkdir -p parent-app
-          cd parent-app
-          npm init -y
-          npm install @capacitor/core @capacitor/android@5.7.0
-          npx cap init "FamilyLifeParent" "com.familylife.parent" --web-dir ../web/parent
-          npx cap add android
-
-      - name: Build Child APK with Capacitor
-        run: |
-          mkdir -p child-app
-          cd child-app
-          npm init -y
-          npm install @capacitor/core @capacitor/android@5.7.0
-          npx cap init "FamilyLifeChild" "com.familylife.child" --web-dir ../web/child
-          npx cap add android
-
-      - name: Set Java Version in Gradle
-        run: |
-          sed -i 's/sourceCompatibility = JavaVersion.VERSION_21/sourceCompatibility = JavaVersion.VERSION_17/g' parent-app/android/app/build.gradle
-          sed -i 's/targetCompatibility = JavaVersion.VERSION_21/targetCompatibility = JavaVersion.VERSION_17/g' parent-app/android/app/build.gradle
-          sed -i 's/sourceCompatibility = JavaVersion.VERSION_21/sourceCompatibility = JavaVersion.VERSION_17/g' child-app/android/app/build.gradle
-          sed -i 's/targetCompatibility = JavaVersion.VERSION_21/targetCompatibility = JavaVersion.VERSION_17/g' child-app/android/app/build.gradle
-
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Build Parent Android APK
+      - name: Install Capacitor
+        run: npm install -g @capacitor/cli@5.7.0
+
+      - name: Create Parent App
+        run: |
+          mkdir -p parent-app/www
+          cp -r web/parent/* parent-app/www/
+          cd parent-app
+          npm init -y
+          npm install @capacitor/core@5.7.0 @capacitor/android@5.7.0
+          npx cap init "亲子时光-父母端" "com.familylife.parent" --web-dir www
+          npx cap add android
+
+      - name: Create Child App
+        run: |
+          mkdir -p child-app/www
+          cp -r web/child/* child-app/www/
+          cd child-app
+          npm init -y
+          npm install @capacitor/core@5.7.0 @capacitor/android@5.7.0
+          npx cap init "亲子时光-子女端" "com.familylife.child" --web-dir www
+          npx cap add android
+
+      - name: Fix Gradle Java Version
+        run: |
+          sed -i 's/VERSION_21/VERSION_17/g' parent-app/android/variables.gradle || true
+          sed -i 's/VERSION_21/VERSION_17/g' parent-app/android/app/build.gradle || true
+          sed -i 's/VERSION_21/VERSION_17/g' child-app/android/variables.gradle || true
+          sed -i 's/VERSION_21/VERSION_17/g' child-app/android/app/build.gradle || true
+
+      - name: Build Parent APK
         run: |
           cd parent-app/android
           chmod +x gradlew
-          ./gradlew assembleDebug
+          ./gradlew assembleDebug --no-daemon
 
-      - name: Build Child Android APK
+      - name: Build Child APK
         run: |
           cd child-app/android
           chmod +x gradlew
-          ./gradlew assembleDebug
+          ./gradlew assembleDebug --no-daemon
 
-      - name: Upload APK Artifacts
+      - name: Upload APKs
         uses: actions/upload-artifact@v4
         with:
           name: android-apks
           path: |
-            parent-app/android/app/build/outputs/apk/debug/*.apk
-            child-app/android/app/build/outputs/apk/debug/*.apk
+            parent-app/android/app/build/outputs/apk/debug/app-debug.apk
+            child-app/android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: warn
-
-      - name: Create Release
-        if: github.ref == 'refs/heads/main'
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            parent-app/android/app/build/outputs/apk/debug/*.apk
-            child-app/android/app/build/outputs/apk/debug/*.apk
-          name: Release ${{ github.run_number }}
-          tag_name: v${{ github.run_number }}
-          draft: false
-          prerelease: false
