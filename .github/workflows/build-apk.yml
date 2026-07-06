@@ -11,48 +11,67 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
-      - name: Install dependencies
+      - name: Install Python dependencies
         run: pip install -r backend/requirements.txt
 
-      - name: Build static files
-        run: |
-          mkdir -p build/parent build/child
-          cp -r web/parent/* build/parent/
-          cp -r web/child/* build/child/
+      - name: Install Capacitor CLI
+        run: npm install -g @capacitor/cli
 
-      - name: Start Flask server in background
+      - name: Build Parent APK with Capacitor
         run: |
-          python run.py &
-          sleep 3
+          mkdir -p parent-app
+          cd parent-app
+          npm init -y
+          npm install @capacitor/core @capacitor/android
+          npx cap init "FamilyLifeParent" "com.familylife.parent" --web-dir ../web/parent
+          npx cap add android
+          npx cap sync
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Build Child APK with Capacitor
+        run: |
+          mkdir -p child-app
+          cd child-app
+          npm init -y
+          npm install @capacitor/core @capacitor/android
+          npx cap init "FamilyLifeChild" "com.familylife.child" --web-dir ../web/child
+          npx cap add android
+          npx cap sync
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
         with:
-          node-version: '20'
+          distribution: 'temurin'
+          java-version: '17'
 
-      - name: Install PWABuilder CLI
-        run: npm install -g @pwabuilder/pwabuilder
-
-      - name: Build Parent APK
+      - name: Build Parent Android APK
         run: |
-          pwabuilder build --url http://localhost:5000/parent/ --platforms android --output ./build/apk-parent/ || true
+          cd parent-app/android
+          chmod +x gradlew
+          ./gradlew assembleDebug
 
-      - name: Build Child APK
+      - name: Build Child Android APK
         run: |
-          pwabuilder build --url http://localhost:5000/child/ --platforms android --output ./build/apk-child/ || true
+          cd child-app/android
+          chmod +x gradlew
+          ./gradlew assembleDebug
 
       - name: Upload APK Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: android-apks
           path: |
-            build/apk-parent/*.apk
-            build/apk-child/*.apk
+            parent-app/android/app/build/outputs/apk/debug/*.apk
+            child-app/android/app/build/outputs/apk/debug/*.apk
           if-no-files-found: warn
 
       - name: Create Release
@@ -60,8 +79,8 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            build/apk-parent/*.apk
-            build/apk-child/*.apk
+            parent-app/android/app/build/outputs/apk/debug/*.apk
+            child-app/android/app/build/outputs/apk/debug/*.apk
           name: Release ${{ github.run_number }}
           tag_name: v${{ github.run_number }}
           draft: false
