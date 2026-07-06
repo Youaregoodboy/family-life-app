@@ -773,9 +773,24 @@ def timeline():
 def uploaded_file(filename):
     return send_from_directory(UPLOAD_FOLDER, filename)
 
+WEB_PARENT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'web', 'parent')
+WEB_CHILD_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'web', 'child')
+
 @app.route('/')
 def index():
     return jsonify({'message': 'Family Life App API', 'status': 'running'})
+
+@app.route('/parent', defaults={'filename': 'index.html'})
+@app.route('/parent/', defaults={'filename': 'index.html'})
+@app.route('/parent/<path:filename>')
+def parent_static(filename):
+    return send_from_directory(WEB_PARENT_DIR, filename)
+
+@app.route('/child', defaults={'filename': 'index.html'})
+@app.route('/child/', defaults={'filename': 'index.html'})
+@app.route('/child/<path:filename>')
+def child_static(filename):
+    return send_from_directory(WEB_CHILD_DIR, filename)
 
 @app.errorhandler(400)
 def bad_request(e):
