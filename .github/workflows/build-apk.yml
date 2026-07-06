@@ -6,91 +6,63 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-apk:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: pip install -r backend/requirements.txt
+
+      - name: Build static files
+        run: |
+          mkdir -p build/parent build/child
+          cp -r web/parent/* build/parent/
+          cp -r web/child/* build/child/
+
+      - name: Start Flask server in background
+        run: |
+          python run.py &
+          sleep 3
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      - name: Install Bubblewrap
-        run: npm install -g @anthropic/bubblewrap
-
-      - name: Create TWA Project for Parent App
-        run: |
-          mkdir -p twa-parent
-          cd twa-parent
-          bubblewrap init --manifest="../web/parent/manifest.json" --directory="." || true
-          # 手动创建配置
-          cat > twa-manifest.json << EOF
-          {
-            "name": "亲子时光-父母端",
-            "launcherName": "亲子时光",
-            "packageId": "com.familylife.parent",
-            "webManifestUrl": "https://your-domain.com/parent/manifest.json",
-            "startUrl": "/parent/",
-            "display": "standalone",
-            "themeColor": "#6366f1",
-            "navigationColor": "#6366f1",
-            "navigationColorDark": "#6366f1",
-            "navigationDividerColor": "#6366f1",
-            "navigationDividerColorDark": "#6366f1",
-            "backgroundColor": "#ffffff",
-            "enableNotifications": false,
-            "shortcuts": [],
-            "signingKey": {
-              "path": "android.keystore",
-              "alias": "familylife"
-            }
-          }
-          EOF
+      - name: Install PWABuilder CLI
+        run: npm install -g @pwabuilder/pwabuilder
 
       - name: Build Parent APK
         run: |
-          cd twa-parent
-          bubblewrap build || echo "Build requires hosting URL"
+          pwabuilder build --url http://localhost:5000/parent/ --platforms android --output ./build/apk-parent/ || true
 
-      - name: Create TWA Project for Child App
+      - name: Build Child APK
         run: |
-          mkdir -p twa-child
-          cd twa-child
-          cat > twa-manifest.json << EOF
-          {
-            "name": "亲子时光-子女端",
-            "launcherName": "亲子时光",
-            "packageId": "com.familylife.child",
-            "webManifestUrl": "https://your-domain.com/child/manifest.json",
-            "startUrl": "/child/",
-            "display": "standalone",
-            "themeColor": "#f472b6",
-            "navigationColor": "#f472b6",
-            "navigationColorDark": "#f472b6",
-            "navigationDividerColor": "#f472b6",
-            "navigationDividerColorDark": "#f472b6",
-            "backgroundColor": "#ffffff",
-            "enableNotifications": false,
-            "shortcuts": [],
-            "signingKey": {
-              "path": "android.keystore",
-              "alias": "familylife"
-            }
-          }
-          EOF
+          pwabuilder build --url http://localhost:5000/child/ --platforms android --output ./build/apk-child/ || true
 
-      - name: Upload Artifacts
+      - name: Upload APK Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: apk-files
+          name: android-apks
           path: |
-            twa-parent/*.apk
-            twa-child/*.apk
-          if-no-files-found: ignore
+            build/apk-parent/*.apk
+            build/apk-child/*.apk
+          if-no-files-found: warn
+
+      - name: Create Release
+        if: github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            build/apk-parent/*.apk
+            build/apk-child/*.apk
+          name: Release ${{ github.run_number }}
+          tag_name: v${{ github.run_number }}
+          draft: false
+          prerelease: false
