@@ -64,6 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initBottomNav();
   initGalleryTabs();
   checkAuth();
+  checkForUpdates();
 });
 
 function initAuthTabs() {
@@ -625,3 +626,84 @@ async function logout() {
 document.getElementById('media-modal').addEventListener('click', (e) => {
   if (e.target.id === 'media-modal') closeModal();
 });
+
+const GITHUB_REPO = 'Youaregoodboy/family-life-app';
+const CURRENT_VERSION = '1.0.0';
+let latestReleaseData = null;
+
+async function checkForUpdates() {
+  try {
+    const lastCheck = localStorage.getItem('lastUpdateCheck');
+    const now = Date.now();
+    if (lastCheck && (now - parseInt(lastCheck)) < 3600000) {
+      return;
+    }
+    localStorage.setItem('lastUpdateCheck', now.toString());
+
+    const response = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/latest`);
+    if (!response.ok) return;
+    
+    const data = await response.json();
+    latestReleaseData = data;
+    
+    const latestVersion = data.tag_name.replace('v', '');
+    if (isNewerVersion(latestVersion, CURRENT_VERSION)) {
+      showUpdateModal(data);
+    }
+  } catch (e) {
+    console.log('Update check failed:', e);
+  }
+}
+
+function isNewerVersion(latest, current) {
+  const latestParts = latest.split('.').map(Number);
+  const currentParts = current.split('.').map(Number);
+  
+  for (let i = 0; i < 3; i++) {
+    if (latestParts[i] > currentParts[i]) return true;
+    if (latestParts[i] < currentParts[i]) return false;
+  }
+  return false;
+}
+
+function showUpdateModal(releaseData) {
+  const modal = document.getElementById('update-modal');
+  const versionEl = document.getElementById('update-version');
+  const changelogEl = document.getElementById('update-changelog');
+  
+  const version = releaseData.tag_name.replace('v', '');
+  versionEl.textContent = `版本 v${version}`;
+  
+  let changelog = releaseData.body || '';
+  if (!changelog) {
+    changelog = '<h4>更新内容</h4><ul><li>修复已知问题</li><li>优化用户体验</li></ul>';
+  } else {
+    changelog = changelog.replace(/^#+\s*.*$/gm, '').trim();
+    const lines = changelog.split('\n').filter(l => l.trim());
+    changelog = '<h4>更新内容</h4><ul>' + lines.map(l => `<li>${l.replace(/^[-*]\s*/, '')}</li>`).join('') + '</ul>';
+  }
+  changelogEl.innerHTML = changelog;
+  
+  modal.classList.add('show');
+}
+
+function closeUpdateModal() {
+  document.getElementById('update-modal').classList.remove('show');
+}
+
+function downloadUpdate() {
+  if (!latestReleaseData) return;
+  
+  const apkAssets = latestReleaseData.assets.filter(a => 
+    a.name.toLowerCase().includes('.apk') && 
+    a.name.toLowerCase().includes('child')
+  );
+  
+  if (apkAssets.length > 0) {
+    window.open(apkAssets[0].browser_download_url, '_system');
+  } else {
+    window.open(latestReleaseData.html_url, '_system');
+  }
+  
+  closeUpdateModal();
+}

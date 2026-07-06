@@ -387,5 +387,18 @@
       });
     }
   </script>
+
+  <div id="update-modal" class="update-modal">
+    <div class="update-modal-content">
+      <div class="update-icon">🎉</div>
+      <h2>发现新版本</h2>
+      <p class="update-version" id="update-version"></p>
+      <div class="update-changelog" id="update-changelog"></div>
+      <div class="update-actions">
+        <button class="btn-secondary" onclick="closeUpdateModal()">稍后再说</button>
+        <button class="btn-primary" onclick="downloadUpdate()">立即更新</button>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
