@@ -14,15 +14,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-
-      - name: Install Python dependencies
-        run: pip install -r backend/requirements.txt
+          node-version: '20'
 
       - name: Install Capacitor CLI
         run: npm install -g @capacitor/cli
@@ -32,20 +24,25 @@ jobs:
           mkdir -p parent-app
           cd parent-app
           npm init -y
-          npm install @capacitor/core @capacitor/android
+          npm install @capacitor/core @capacitor/android@5.7.0
           npx cap init "FamilyLifeParent" "com.familylife.parent" --web-dir ../web/parent
           npx cap add android
-          npx cap sync
 
       - name: Build Child APK with Capacitor
         run: |
           mkdir -p child-app
           cd child-app
           npm init -y
-          npm install @capacitor/core @capacitor/android
+          npm install @capacitor/core @capacitor/android@5.7.0
           npx cap init "FamilyLifeChild" "com.familylife.child" --web-dir ../web/child
           npx cap add android
-          npx cap sync
+
+      - name: Set Java Version in Gradle
+        run: |
+          sed -i 's/sourceCompatibility = JavaVersion.VERSION_21/sourceCompatibility = JavaVersion.VERSION_17/g' parent-app/android/app/build.gradle
+          sed -i 's/targetCompatibility = JavaVersion.VERSION_21/targetCompatibility = JavaVersion.VERSION_17/g' parent-app/android/app/build.gradle
+          sed -i 's/sourceCompatibility = JavaVersion.VERSION_21/sourceCompatibility = JavaVersion.VERSION_17/g' child-app/android/app/build.gradle
+          sed -i 's/targetCompatibility = JavaVersion.VERSION_21/targetCompatibility = JavaVersion.VERSION_17/g' child-app/android/app/build.gradle
 
       - name: Setup Java
         uses: actions/setup-java@v4
